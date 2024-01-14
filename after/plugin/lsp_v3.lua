@@ -8,6 +8,34 @@ require("mason-lspconfig").setup({
     },
 })
 
+-- Pyright config
+local function filter(arr, func)
+    -- Filter in place
+    -- https://stackoverflow.com/questions/49709998/how-to-filter-a-lua-array-inplace
+    local new_index = 1
+    local size_orig = #arr
+    for old_index, v in ipairs(arr) do
+        if func(v, old_index) then
+            arr[new_index] = v
+            new_index = new_index + 1
+        end
+    end
+    for i = new_index, size_orig do arr[i] = nil end
+end
+
+local function pyright_accessed_filter(diagnostic)
+    if string.match(diagnostic.message, '".+" is not accessed') then
+        return false
+    end
+
+    return true
+end
+
+local function custom_on_publish_diagnostics(a, params, client_id, c, config)
+    filter(params.diagnostics, pyright_accessed_filter)
+    vim.lsp.diagnostic.on_publish_diagnostics(a, params, client_id, c, config)
+end
+
 local cmp = require("cmp")
 cmp.setup({
     preselect = 'none',
@@ -50,7 +78,7 @@ cmp.setup({
 })
 
 local lsp_capabilities = require("cmp_nvim_lsp").default_capabilities()
-local lsp_attach = function(_, bufnr) -- https://github.com/VonHeikemen/lsp-zero.nvim/blob/v1.x/doc/md/lsp.md#you-might-not-need-lsp-zero
+local lsp_attach = function(client, bufnr) -- https://github.com/VonHeikemen/lsp-zero.nvim/blob/v1.x/doc/md/lsp.md#you-might-not-need-lsp-zero
     local opts = { buffer = bufnr, remap = false }
     vim.keymap.set("n", "gd", function() vim.lsp.buf.definition() end, opts)
     vim.keymap.set("n", "K", function() vim.lsp.buf.hover() end, opts)
@@ -61,6 +89,10 @@ local lsp_attach = function(_, bufnr) -- https://github.com/VonHeikemen/lsp-zero
     vim.keymap.set("n", "<leader>vca", function() vim.lsp.buf.code_action() end, opts)
     vim.keymap.set("n", "<leader>vrr", function() vim.lsp.buf.references() end, opts)
     vim.keymap.set("n", "<leader>vrn", function() vim.lsp.buf.rename() end, opts)
+
+    if client.name == "pyright" then
+        vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(custom_on_publish_diagnostics, {})
+    end
 end
 
 local lspconfig = require("lspconfig")

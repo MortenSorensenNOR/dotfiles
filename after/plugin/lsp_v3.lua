@@ -4,14 +4,12 @@ require("mason-lspconfig").setup({
     ensure_installed = {
         "clangd",
         "pyright",
-        "texlab"
+        "texlab",
+        "verible"
     },
 })
 
--- Pyright config
 local function filter(arr, func)
-    -- Filter in place
-    -- https://stackoverflow.com/questions/49709998/how-to-filter-a-lua-array-inplace
     local new_index = 1
     local size_orig = #arr
     for old_index, v in ipairs(arr) do
@@ -89,13 +87,52 @@ local lsp_attach = function(client, bufnr) -- https://github.com/VonHeikemen/lsp
     vim.keymap.set("n", "<leader>vca", function() vim.lsp.buf.code_action() end, opts)
     vim.keymap.set("n", "<leader>vrr", function() vim.lsp.buf.references() end, opts)
     vim.keymap.set("n", "<leader>vrn", function() vim.lsp.buf.rename() end, opts)
+    vim.keymap.set("n", "gl", function() vim.diagnostic.open_float() end, opts);
 
     if client.name == "pyright" then
         vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(custom_on_publish_diagnostics, {})
     end
+
+    -- Does not work, but sure would be nice
+    if client.name == "verible" then
+        vim.diagnostic.config({
+            virtual_text = {
+                severity = vim.diagnostic.severity.ERROR, -- Show only errors in virtual text
+            },
+            signs = {
+                severity = vim.diagnostic.severity.ERROR, -- Show only errors in signs
+            },
+            underline = {
+                severity = vim.diagnostic.severity.ERROR, -- Underline only errors
+            },
+        }, bufnr)
+    end
 end
 
+-- HDL Checker setup
+-- if not require'lspconfig.configs'.hdl_checker then
+--     require'lspconfig.configs'.hdl_checker = {
+--         default_config = {
+--             cmd = {"hdl_checker", "--lsp", };
+--             filetypes = {"vhdl", "verilog", "systemverilog"};
+--             root_dir = function(fname)
+--                 -- will look for the .hdl_checker.config file in parent directory, a
+--                 -- .git directory, or else use the current directory, in that order.
+--                 local util = require'lspconfig'.util
+--                 return util.root_pattern('.hdl_checker.config')(fname) or util.find_git_ancestor(fname) or util.path.dirname(fname)
+--             end;
+--             settings = {};
+--         };
+--     }
+-- end
+
+-- require'lspconfig'.hdl_checker.setup{}
+
 local lspconfig = require("lspconfig")
+lspconfig.verible.setup({
+    cmd = { 'verible-verilog-ls','--rules_config_search', '--rules=-no-trailing-spaces', 'autofix=patch-interactive'}
+})
+
 local get_servers = require("mason-lspconfig").get_installed_servers
 for _, server_name in ipairs(get_servers()) do
 	lspconfig[server_name].setup({
@@ -124,3 +161,4 @@ vim.diagnostic.config({
 		prefix = "",
 	},
 })
+

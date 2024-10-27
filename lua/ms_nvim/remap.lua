@@ -2,8 +2,8 @@ vim.g.mapleader = " "
 vim.keymap.set("n", "<leader>pv", vim.cmd.Ex)
 
 -- Move around selected text
-vim.keymap.set("v", "<A-Down>", ":m '>+1<CR>gv=gv")
-vim.keymap.set("v", "<A-Up>", ":m '<-2<CR>gv=gv")
+vim.keymap.set("v", "<A-j>", ":m '>+1<CR>gv=gv")
+vim.keymap.set("v", "<A-k>", ":m '<-2<CR>gv=gv")
 
 -- Activate visual mode with Shift + arrowKey
 --vim.api.nvim_set_keymap('n', '<S-Up>', 'v', { noremap = true, silent = true })
@@ -56,10 +56,12 @@ function move_to_end_of_line()
 end
 
 -- Map Ctrl + Right to move to the end of the line
-vim.keymap.set({ "n", "i" }, '<C-S-Right>', '<Cmd>lua move_to_end_of_line()<CR>', { noremap = true, silent = true })
+vim.keymap.set({ "n" }, '<C-S-Right>', '<Cmd>lua move_to_end_of_line()<CR>', { noremap = true, silent = true })
+vim.keymap.set({ "v" }, '<C-S-Right>', '<Cmd>lua move_to_end_of_line()<CR>', { noremap = true, silent = true })
+vim.keymap.set({ "i" }, '<C-S-Right>', '<Cmd>lua move_to_end_of_line()<CR><Right>', { noremap = true, silent = true })
 
 -- Map Ctrl + Left to move to the beginning of the line
-vim.keymap.set({ 'n', 'i' }, '<C-S-Left>', '<Cmd>normal! 0<CR>', { noremap = true, silent = true })
+vim.keymap.set({ 'n', 'i', 'v' }, '<C-S-Left>', '<Cmd>normal! 0<CR>', { noremap = true, silent = true })
 
 -- Map Ctrl + Up and Ctrl + Down to scroll without changing cursor position
 vim.api.nvim_set_keymap('n', '<C-Up>', '<Cmd>normal! k<CR>', { noremap = true, silent = true })
@@ -73,3 +75,9 @@ vim.opt.whichwrap:append {
     h = true,
     l = true,
 }
+
+-- I always fuck up and write W instead of w
+vim.api.nvim_create_user_command('W', 'w', {})
+
+-- Copy entire buffer to clipboard
+vim.keymap.set('n', '<leader>cb', ':%y+<CR>', { noremap = true, silent = true })

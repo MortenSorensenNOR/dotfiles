@@ -91,13 +91,13 @@ return require('packer').startup(function(use)
   })
   
 
-  use({
-      'github/copilot.vim',
-      config = function()
-          -- Disable Copilot by default when starting Neovim
-          vim.g.copilot_enabled = false
-      end
-  })
+  -- use({
+  --     'github/copilot.vim',
+  --     config = function()
+  --         -- Disable Copilot by default when starting Neovim
+  --         vim.g.copilot_enabled = false
+  --     end
+  -- })
 
 end)
 

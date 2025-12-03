@@ -135,6 +135,38 @@ if not _G.__PYRIGHT_SETUP_DONE then
   })
 end
 
+-- --------- Verible: configure ONCE + dedupe protection ---------
+
+if not _G.__VERIBLE_SETUP_DONE then
+  _G.__VERIBLE_SETUP_DONE = true
+
+  lspconfig.verible.setup({
+    on_attach = lsp_attach,
+    capabilities = capabilities,
+    cmd = {
+      "verible-verilog-ls",
+      "--rules_config_search",
+      "--rules=-no-trailing-spaces, -parameter-name-style, -line-length, -explicit-parameter-storage-type",
+      "autofix=patch-interactive",
+    },
+  })
+
+  -- Kill duplicate Verible instances
+  vim.api.nvim_create_autocmd("LspAttach", {
+    group = vim.api.nvim_create_augroup("VeribleDedupe", { clear = true }),
+    callback = function(args)
+      local client = vim.lsp.get_client_by_id(args.data.client_id)
+      if not client or client.name ~= "verible" then return end
+      local root = client.config.root_dir
+      for _, other in ipairs(vim.lsp.get_active_clients({ name = "verible" })) do
+        if other.id ~= client.id and other.config and other.config.root_dir == root then
+          other.stop(true)
+        end
+      end
+    end,
+  })
+end
+
 -- --------- Other servers (configured once) ---------
 
 -- Lua
@@ -144,17 +176,17 @@ lspconfig.lua_ls.setup({
   settings = { Lua = { diagnostics = { globals = { "vim" } } } },
 })
 
--- Verible
-lspconfig.verible.setup({
-  on_attach = lsp_attach,
-  capabilities = capabilities,
-  cmd = {
-    "verible-verilog-ls",
-    "--rules_config_search",
-    "--rules=-no-trailing-spaces",
-    "autofix=patch-interactive",
-  },
-})
+-- -- Verible
+-- lspconfig.verible.setup({
+--   on_attach = lsp_attach,
+--   capabilities = capabilities,
+--   cmd = {
+--     "verible-verilog-ls",
+--     "--rules_config_search",
+--     "--rules=-no-trailing-spaces",
+--     "autofix=patch-interactive",
+--   },
+-- })
 
 -- ESLint
 lspconfig.eslint.setup({
@@ -173,26 +205,26 @@ lspconfig.eslint.setup({
   end,
 })
 
--- HDL Checker (custom server)
-if not require("lspconfig.configs").hdl_checker then
-  require("lspconfig.configs").hdl_checker = {
-    default_config = {
-      cmd = { "hdl_checker", "--lsp" },
-      filetypes = { "vhdl", "verilog", "systemverilog" },
-      root_dir = function(fname)
-        local util2 = require("lspconfig").util
-        return util2.root_pattern(".hdl_checker.config")(fname)
-            or util2.find_git_ancestor(fname)
-            or util2.path.dirname(fname)
-      end,
-      settings = {},
-    },
-  }
-end
-lspconfig.hdl_checker.setup({ on_attach = lsp_attach, capabilities = capabilities })
+-- -- HDL Checker (custom server)
+-- if not require("lspconfig.configs").hdl_checker then
+--   require("lspconfig.configs").hdl_checker = {
+--     default_config = {
+--       cmd = { "hdl_checker", "--lsp" },
+--       filetypes = { "vhdl", "verilog", "systemverilog" },
+--       root_dir = function(fname)
+--         local util2 = require("lspconfig").util
+--         return util2.root_pattern(".hdl_checker.config")(fname)
+--             or util2.find_git_ancestor(fname)
+--             or util2.path.dirname(fname)
+--       end,
+--       settings = {},
+--     },
+--   }
+-- end
+-- lspconfig.hdl_checker.setup({ on_attach = lsp_attach, capabilities = capabilities })
 
 -- Any other installed servers (skip ones we configured above)
-local skip = { pyright = true, lua_ls = true, verible = true, eslint = true, hdl_checker = true }
+local skip = { pyright = true, lua_ls = true, verible = true, eslint = true} --, hdl_checker = true 
 for _, server in ipairs(require("mason-lspconfig").get_installed_servers()) do
   if not skip[server] and lspconfig[server] then
     lspconfig[server].setup({

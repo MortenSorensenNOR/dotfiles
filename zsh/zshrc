@@ -116,8 +116,6 @@ export NVM_DIR="$HOME/.nvm"
 
 alias mupdf='mupdf-gl -I'
 
-source ~/vulkan-sdk-1.3.268.0/setup-env.sh
-
 # Latex
 #export PATH=$PATH:/usr/local/texlive/2023/bin/x86_64-linux:/home/morten/ccls/Release/
 
@@ -145,15 +143,8 @@ alias dualscreenmode="xrandr --output HDMI-0 --mode 2560x1440 --rate 120 --left-
 alias dualscreenmode2="xrandr --output HDMI-0 --mode 2560x1440 --rate 120 --right-of DP-2"
 alias singlescreenmode="xrandr --output DP-2 --primary --mode 2560x1600 --rate 165"
 
-# Build macro for TDT4102
-alias buildrun="meson builddir && cd builddir && ninja && cd .. && ./builddir/program"
-alias makerun="cd build && make && ./app"
-
 alias clean="rm -rf ./*"
 alias c="clear"
-
-# Fpga dev 
-alias fpgadev="cd /media/disk/"
 
 # Switch from zsh to bash
 alias bash="/bin/bash"
@@ -174,13 +165,13 @@ alias t="sd && tmux"
 alias cleandirectory="rm -rf ./*"
 
 # Set display in low power mode
-alias lowpower="xrandr --output DP-2 --brightness 0.6 --rate 60 --mode 2560x1600"
+alias lowpower="xrandr --output eDP --brightness 0.6 --rate 60 --mode 2560x1600"
 
 # Set display in low refreshrate, but high brightness mode
-alias mediumpower="xrandr --output DP-2 --brightness 1 --rate 60 --mode 2560x1600"
+alias mediumpower="xrandr --output eDP --brightness 1 --rate 60 --mode 2560x1600"
 
 # Set display in normal mode
-alias normalpower="xrandr --output DP-2 --brightness 1 --rate 165 --mode 2560x1600"
+alias normalpower="xrandr --output eDP --brightness 1 --rate 165 --mode 2560x1600"
 
 # ESP-IDF
 alias get_idf='. $HOME/esp/esp-idf/export.sh'
